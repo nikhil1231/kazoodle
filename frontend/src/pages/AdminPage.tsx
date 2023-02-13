@@ -3,13 +3,13 @@ import { useState } from "react";
 export const AdminPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | undefined>();
   const [isFilePicked, setIsFilePicked] = useState(false);
-  const [fileName, setFileName] = useState("");
+  const [songName, setSongName] = useState("");
+  const [artist, setArtist] = useState("");
 
   const onUploadFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files !== null && files.length > 0) {
       setSelectedFile(files[0]);
-      setFileName(files[0].name);
       setIsFilePicked(true);
     }
   };
@@ -22,16 +22,18 @@ export const AdminPage: React.FC = () => {
 
     const uploadFormData = new FormData();
 
-    uploadFormData.append("filename", fileName);
+    uploadFormData.append("song_name", songName);
+    uploadFormData.append("artist", artist);
     uploadFormData.append("file", selectedFile);
 
-    await fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/file/upload`,
-      {
-        method: "POST",
-        body: uploadFormData
-      }
-    );
+    await fetch(`${process.env.REACT_APP_BACKEND_URL}/song/upload`, {
+      method: "POST",
+      body: uploadFormData,
+    });
+
+    setSongName("");
+    setArtist("");
+    setIsFilePicked(false);
   };
 
   return (
@@ -44,8 +46,20 @@ export const AdminPage: React.FC = () => {
         accept="audio/x-wav, audio/mp4"
         onChange={onUploadFileChange}
       />
-      <input value={fileName} onChange={e => setFileName(e.target.value)} />
-      <button onClick={onUploadFileClick} disabled={!isFilePicked || fileName == ''}>
+      <input
+        placeholder="Song name"
+        value={songName}
+        onChange={(e) => setSongName(e.target.value)}
+      />
+      <input
+        placeholder="Artist"
+        value={artist}
+        onChange={(e) => setArtist(e.target.value)}
+      />
+      <button
+        onClick={onUploadFileClick}
+        disabled={!isFilePicked || songName == "" || artist == ""}
+      >
         Upload
       </button>
     </div>

@@ -1,14 +1,17 @@
+from io import BytesIO
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, Form, UploadFile
-
-from file import upload_file
+from manager import get_song_link, get_songs_history, get_songs_queue, update_song, upload_song
+from scheduler import start_update_timer
 
 app = FastAPI()
 
 load_dotenv()
+
+start_update_timer()
 
 origins = [os.environ.get('FRONTEND_URL')]
 
@@ -20,7 +23,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/file/upload")
-async def create_upload_file(filename: str = Form(), file: UploadFile = File(...)):
-  await upload_file(filename, file)
-  return {"filename": filename}
+@app.get("/song/link")
+async def get_song_link_():
+  return {"url": get_song_link()}
+
+@app.get("/song/history")
+async def get_song_history_():
+  return {'history': get_songs_history()}
+
+###################### PROTECTED ######################
+
+@app.get("/song/queue")
+async def get_song_queue_():
+  return {'queue': get_songs_queue()}
+
+@app.post("/song/upload")
+async def create_upload_file(song_name: str = Form(), artist: str = Form(), file: UploadFile = File(...)):
+  _, ext = os.path.splitext(file.filename)
+  await upload_song(song_name, artist, BytesIO(await file.read()), ext)
+  return {"song_name": song_name}
+
+@app.get("/song/next")
+async def next_song_():
+  return {
+    'new_song': update_song()
+  }

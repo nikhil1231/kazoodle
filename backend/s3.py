@@ -3,8 +3,6 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 import logging
 import uuid
-from fastapi import UploadFile
-from io import BytesIO
 
 BUCKET_NAME = 'kazoodle-main'
 
@@ -16,17 +14,18 @@ s3_config = Config(
         'mode': 'standard'
     }
 )
+s3_client = boto3.client('s3', config=s3_config)
 
-async def upload_file(filename: str, file: UploadFile):
-  s3_client = boto3.client('s3', config=s3_config)
-  file_bytes = BytesIO(await file.read())
+async def upload_file(song_name: str, artist: str, file: bytes, extension: str):
+  filename = str(uuid.uuid4())[:8] + extension
   try:
-    response = s3_client.upload_fileobj(file_bytes, BUCKET_NAME, str(uuid.uuid4())[:8], ExtraArgs={
+    response = s3_client.upload_fileobj(file, BUCKET_NAME, filename, ExtraArgs={
       'Metadata': {
-        'name': filename
+        'song_name': song_name,
+        'artist': artist
       }
     })
   except ClientError as e:
     logging.error(e)
     return False
-  return True
+  return filename
