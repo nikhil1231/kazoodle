@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd ..
+pip freeze > ./backend/requirements.txt
+git add ./backend/requirements.txt
+git commit --amend --no-edit
+git push heroku `git subtree split --prefix backend master`:master --force
