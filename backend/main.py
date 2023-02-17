@@ -52,5 +52,11 @@ async def create_upload_file(song_name: str = Form(), artist: str = Form(), file
 @app.post("/song/next")
 async def next_song_():
   return {
-    'new_song': update_song()
+    'current_song': update_song()
+  }
+
+@app.post("/song/previous")
+async def prev_song_():
+  return {
+    'current_song': update_song(forward=False)
   }

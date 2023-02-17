@@ -58,6 +58,11 @@ def add_song_to_queue(song: Song):
     raise Exception('song is None')
   r.rpush(K_QUEUE, song.to_json())
 
+def rollback_song_to_queue(song: Song):
+  if song is None:
+    raise Exception('song is None')
+  r.lpush(K_QUEUE, song.to_json())
+
 def pop_song_from_queue():
   s = r.lpop(K_QUEUE)
   if s is None:
@@ -72,6 +77,13 @@ def add_song_to_history(song: Song):
   if song is None:
     return
   r.lpush(K_HISTORY, song.to_json())
+
+def rollback_song_from_history():
+  s = r.lpop(K_HISTORY)
+  if s is None:
+    return s
+  else:
+    return Song.from_json(s)
 
 def get_song_history():
   return list(map(lambda j: Song.from_json(j), r.lrange(K_HISTORY, 0, -1)))
