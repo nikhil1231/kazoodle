@@ -6,7 +6,7 @@ from fastapi import FastAPI, File, Form, UploadFile, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from classes import NewUser, User
 from utils import get_env_var
-from manager import get_song_link, get_songs_history, get_songs_queue, update_song, upload_song
+from manager import get_current_song, get_song_link, get_songs_history, get_songs_queue, update_song, upload_song
 from scheduler import get_next_song_time, start_update_timer
 import auth
 
@@ -31,6 +31,10 @@ app.add_middleware(
 @app.get("/song/link")
 async def get_song_link_():
   return {"url": get_song_link()}
+
+@app.get("/song/current")
+async def get_current_song_():
+  return get_current_song()
 
 @app.get("/song/time_til_next")
 async def get_next_time_():
