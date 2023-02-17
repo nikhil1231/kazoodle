@@ -39,4 +39,4 @@ def get_songs_history():
 async def upload_song(song_name: str, artist: str, file: bytes, extension: str):
   filename = await s3.upload_file(song_name, artist, file, extension)
   if filename:
-    add_song_to_queue(Song(filename, song_name, artist))
+    add_song_to_queue(Song(filename=filename, name=song_name, artist=artist))
