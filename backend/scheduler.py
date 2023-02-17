@@ -19,6 +19,9 @@ def run_continuously(interval=1):
   return cease_continuous_run
 
 def start_update_timer():
-  # schedule.every().day.at("00:00").do(update_song)
-  # schedule.every().second.do(update_song)
+  schedule.every().day.at("00:00").do(update_song)
+  # schedule.every().minute.do(update_song)
   run_continuously()
+
+def get_next_song_time():
+  return int(schedule.idle_seconds())

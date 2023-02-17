@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, Form, UploadFile
 from utils import get_env_var
 from manager import get_song_link, get_songs_history, get_songs_queue, update_song, upload_song
-from scheduler import start_update_timer
+from scheduler import get_next_song_time, start_update_timer
 
 app = FastAPI()
 
@@ -25,6 +25,10 @@ app.add_middleware(
 @app.get("/song/link")
 async def get_song_link_():
   return {"url": get_song_link()}
+
+@app.get("/song/time_til_next")
+async def get_next_time_():
+  return {"seconds_til_next": get_next_song_time()}
 
 @app.get("/song/history")
 async def get_song_history_():
