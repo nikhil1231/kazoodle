@@ -1,18 +1,20 @@
 import json
-import os
 from urllib.parse import urlparse
 import redis
+from utils import get_env_var, is_prod
 from exception import ItemNotFoundException
 
 from dotenv import load_dotenv
 load_dotenv()
 
-url = urlparse(os.environ.get('REDISCLOUD_URL'))
+url = urlparse(get_env_var('REDISCLOUD_URL'))
 r = redis.Redis(host=url.hostname, port=url.port, password=url.password)
 
-K_CURRENT_SONG = 'current_song'
-K_QUEUE = 'queue'
-K_HISTORY = 'history'
+_prod_suffix = lambda: ":PROD" if is_prod() else ""
+
+K_CURRENT_SONG = 'current_song' + _prod_suffix()
+K_QUEUE = 'queue' + _prod_suffix()
+K_HISTORY = 'history' + _prod_suffix()
 
 class Song:
   def __init__(self, filename, name, artist):
@@ -74,8 +76,16 @@ def add_song_to_history(song: Song):
 def get_song_history():
   return list(map(lambda j: Song.from_json(j), r.lrange(K_HISTORY, 0, -1)))
 
+
+###################### !!! DANGER ZONE !!! ######################
+
 def _clear_queue():
   r.delete(K_QUEUE)
 
 def _clear_history():
   r.delete(K_HISTORY)
+
+def _clear_all():
+  clear_current_song()
+  _clear_queue()
+  _clear_history()

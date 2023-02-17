@@ -1,4 +1,3 @@
-import os
 from data_store import Song, add_song_to_queue, add_song_to_history, clear_current_song, get_current_song, get_song_history, get_song_queue, pop_song_from_queue, set_current_song
 import s3
 
@@ -8,7 +7,7 @@ def get_song_link():
   song = get_current_song()
   if song is None:
     return False
-  return f"{os.environ.get('S3_BUCKET_URL')}/{song.filename}"
+  return s3.get_song_link(song.filename)
 
 def update_song():
   old_song = get_current_song()

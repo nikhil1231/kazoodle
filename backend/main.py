@@ -1,11 +1,9 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 from io import BytesIO
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, Form, UploadFile
+from utils import get_env_var
 from manager import get_song_link, get_songs_history, get_songs_queue, update_song, upload_song
 from scheduler import start_update_timer
 
@@ -14,7 +12,7 @@ app = FastAPI()
 
 start_update_timer()
 
-origins = [os.environ.get('FRONTEND_URL')]
+origins = [get_env_var('FRONTEND_URL')]
 
 app.add_middleware(
     CORSMiddleware,

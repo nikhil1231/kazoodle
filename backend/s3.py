@@ -3,11 +3,14 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 import logging
 import uuid
+from utils import is_prod
 
-BUCKET_NAME = 'kazoodle-main'
+REGION_NAME = 'eu-west-2'
+BUCKET_NAME = f'kazoodle-{"main" if is_prod() else "dev"}'
+BUCKET_URL = f'https://{BUCKET_NAME}.s3.{REGION_NAME}.amazonaws.com'
 
 s3_config = Config(
-    region_name = 'eu-west-2',
+    region_name = REGION_NAME,
     signature_version = 'v4',
     retries = {
         'max_attempts': 3,
@@ -29,6 +32,9 @@ async def upload_file(song_name: str, artist: str, file: bytes, extension: str):
     logging.error(e)
     return False
   return filename
+
+def get_song_link(filename: str):
+  return f"{BUCKET_URL}/{filename}"
 
 def make_public(key: str):
   _setACL(key, 'public-read')
