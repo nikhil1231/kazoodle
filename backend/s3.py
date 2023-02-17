@@ -29,3 +29,12 @@ async def upload_file(song_name: str, artist: str, file: bytes, extension: str):
     logging.error(e)
     return False
   return filename
+
+def make_public(key: str):
+  _setACL(key, 'public-read')
+
+def make_private(key: str):
+  _setACL(key, 'private')
+
+def _setACL(key: str, acl: str):
+  s3_client.put_object_acl(Bucket=BUCKET_NAME, Key=key, ACL=acl)

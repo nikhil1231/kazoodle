@@ -1,6 +1,8 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from io import BytesIO
 import os
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, Form, UploadFile
@@ -9,7 +11,6 @@ from scheduler import start_update_timer
 
 app = FastAPI()
 
-load_dotenv()
 
 start_update_timer()
 
@@ -43,7 +44,10 @@ async def create_upload_file(song_name: str = Form(), artist: str = Form(), file
   await upload_song(song_name, artist, BytesIO(await file.read()), ext)
   return {"song_name": song_name}
 
-@app.get("/song/next")
+
+###################### TESTING PURPOSES ######################
+
+@app.post("/song/next")
 async def next_song_():
   return {
     'new_song': update_song()

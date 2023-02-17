@@ -41,7 +41,7 @@ class Song:
 def set_current_song(song: Song):
   r.set(K_CURRENT_SONG, song.to_json())
 
-def get_current_song():
+def get_current_song() -> Song:
   s = r.get(K_CURRENT_SONG)
   if s is None:
     return s
