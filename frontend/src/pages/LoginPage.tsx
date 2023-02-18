@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { postLogin } from "../api";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,11 +11,8 @@ export const LoginPage: React.FC = () => {
     const form = new FormData();
     form.append("username", username);
     form.append("password", password);
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/user/token`, {
-      method: "POST",
-      body: form,
-      credentials: "include",
-    });
+
+    const res = await postLogin(form);
 
     setPassword("");
 

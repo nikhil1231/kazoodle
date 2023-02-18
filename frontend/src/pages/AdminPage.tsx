@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  uploadSong,
+  getUserResponse,
+  getSongHistory,
+  getSongQueue,
+} from "../api";
+import { SongList } from "../components/admin/SongList";
+import { getCurrentSong } from "../api";
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,15 +17,19 @@ export const AdminPage: React.FC = () => {
   const [artist, setArtist] = useState("");
   const [checkedLogin, hasCheckedLogin] = useState(false);
 
+  const [songCurrent, setSongCurrent] = useState<Song | null>(null);
+  const [songQueueList, setSongQueueList] = useState<Song[]>([]);
+  const [songHistoryList, setSongHistoryList] = useState<Song[]>([]);
+
   useEffect(() => {
-    checkLogin();
+    (async () => {
+      await checkLogin();
+      setSongLists();
+    })();
   }, []);
 
   const checkLogin = async () => {
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/user/me`, {
-      method: "GET",
-      credentials: "include",
-    });
+    const res = await getUserResponse();
 
     if (res.status === 401 || res.status === 403) {
       navigate("/login");
@@ -29,6 +41,12 @@ export const AdminPage: React.FC = () => {
     }
 
     hasCheckedLogin(true);
+  };
+
+  const setSongLists = async () => {
+    getCurrentSong().then((s) => setSongCurrent(s));
+    getSongQueue().then((ss) => setSongQueueList(ss));
+    getSongHistory().then((ss) => setSongHistoryList(ss));
   };
 
   const onUploadFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,15 +69,12 @@ export const AdminPage: React.FC = () => {
     uploadFormData.append("artist", artist);
     uploadFormData.append("file", selectedFile);
 
-    await fetch(`${process.env.REACT_APP_BACKEND_URL}/song/upload`, {
-      method: "POST",
-      credentials: "include",
-      body: uploadFormData,
-    });
+    await uploadSong(uploadFormData);
 
     setSongName("");
     setArtist("");
     setIsFilePicked(false);
+    setSongLists();
   };
 
   return (
@@ -68,28 +83,37 @@ export const AdminPage: React.FC = () => {
         <>
           <h1>Admin page</h1>
 
-          <input
-            type="file"
-            name="file"
-            accept="audio/x-wav, audio/mp4"
-            onChange={onUploadFileChange}
+          <div>
+            <input
+              type="file"
+              name="file"
+              accept="audio/x-wav, audio/mp4"
+              onChange={onUploadFileChange}
+            />
+            <input
+              placeholder="Song name"
+              value={songName}
+              onChange={(e) => setSongName(e.target.value)}
+            />
+            <input
+              placeholder="Artist"
+              value={artist}
+              onChange={(e) => setArtist(e.target.value)}
+            />
+            <button
+              onClick={onUploadFileClick}
+              disabled={!isFilePicked || songName == "" || artist == ""}
+            >
+              Upload
+            </button>
+          </div>
+
+          <SongList
+            title="Current song"
+            songs={songCurrent ? [songCurrent] : []}
           />
-          <input
-            placeholder="Song name"
-            value={songName}
-            onChange={(e) => setSongName(e.target.value)}
-          />
-          <input
-            placeholder="Artist"
-            value={artist}
-            onChange={(e) => setArtist(e.target.value)}
-          />
-          <button
-            onClick={onUploadFileClick}
-            disabled={!isFilePicked || songName == "" || artist == ""}
-          >
-            Upload
-          </button>
+          <SongList title="Queue" songs={songQueueList} />
+          <SongList title="Past songs" songs={songHistoryList} />
         </>
       )}
     </div>
