@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/kazoodle/static/css/main.e6c13ad2.css",
-    "main.js": "/kazoodle/static/js/main.19ae7020.js",
+    "main.css": "/kazoodle/static/css/main.44f8b8b5.css",
+    "main.js": "/kazoodle/static/js/main.3fbe3810.js",
     "index.html": "/kazoodle/index.html",
-    "main.e6c13ad2.css.map": "/kazoodle/static/css/main.e6c13ad2.css.map",
-    "main.19ae7020.js.map": "/kazoodle/static/js/main.19ae7020.js.map"
+    "main.44f8b8b5.css.map": "/kazoodle/static/css/main.44f8b8b5.css.map",
+    "main.3fbe3810.js.map": "/kazoodle/static/js/main.3fbe3810.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6c13ad2.css",
-    "static/js/main.19ae7020.js"
+    "static/css/main.44f8b8b5.css",
+    "static/js/main.3fbe3810.js"
   ]
 }
