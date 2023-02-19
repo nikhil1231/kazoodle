@@ -23,8 +23,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "deploy": "REACT_APP_BACKEND_URL=https://kazoodle.herokuapp.com gh-pages -d build",
+    "build": "REACT_APP_BACKEND_URL=https://kazoodle.herokuapp.com react-scripts build",
+    "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
