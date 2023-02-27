@@ -1,3 +1,5 @@
+import { getAccessToken } from "./utils";
+
 export const getSongLink = async (): Promise<string> => {
   const res = await get("/song/upload");
   return res.url;
@@ -48,6 +50,7 @@ const post = async (path: string, body?: object) => {
 const _get = async (path: string) => {
   return await fetch(`${process.env.REACT_APP_BACKEND_URL}${path}`, {
     method: "GET",
+    headers: _get_headers(),
     credentials: "include",
   });
 };
@@ -55,7 +58,14 @@ const _get = async (path: string) => {
 const _post = async (path: string, body?: object) => {
   return await fetch(`${process.env.REACT_APP_BACKEND_URL}${path}`, {
     method: "POST",
+    headers: _get_headers(),
     credentials: "include",
     body: body as BodyInit,
   });
+};
+
+const _get_headers = () => {
+  return {
+    'Authorization': `Bearer ${getAccessToken()}`
+  };
 };

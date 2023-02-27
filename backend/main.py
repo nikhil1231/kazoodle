@@ -46,14 +46,14 @@ async def get_song_history_():
 
 ###################### PROTECTED ######################
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
   credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
     headers={"WWW-Authenticate": "Bearer"},
   )
 
-  user = auth.get_current_user(token)
+  user = await auth.get_current_user(token)
 
   if not user:
     raise credentials_exception
@@ -62,7 +62,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @app.get("/song/queue")
 async def get_song_queue_(user: User = Depends(get_current_user)):
-  await assertAdmin(user)
+  assertAdmin(user)
   return {'queue': get_songs_queue()}
 
 @app.post("/song/upload")
@@ -70,21 +70,21 @@ async def create_upload_file(song_name: str = Form(),
                              artist: str = Form(),
                              file: UploadFile = File(...),
                              user: User = Depends(get_current_user)):
-  await assertAdmin(user)
+  assertAdmin(user)
   _, ext = os.path.splitext(file.filename)
   await upload_song(song_name, artist, BytesIO(await file.read()), ext)
   return {"song_name": song_name}
 
 @app.post("/song/next")
 async def next_song_(user: User = Depends(get_current_user)):
-  await assertAdmin(user)
+  assertAdmin(user)
   return {
     'current_song': update_song()
   }
 
 @app.post("/song/previous")
 async def prev_song_(user: User = Depends(get_current_user)):
-  await assertAdmin(user)
+  assertAdmin(user)
   return {
     'current_song': update_song(forward=False)
   }
@@ -97,12 +97,12 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     raise HTTPException(status_code=400, detail="Incorrect username or password")
   response.set_cookie('Authorization',
                       f"bearer {token['access_token']}",
-                      expires=token['expiry'])
+                      expires=token['expiry'].timestamp())
   return token
 
 @app.get("/user/me")
 async def get_user_(user: User = Depends(get_current_user)):
-  return (await user).dict(exclude={'password'})
+  return user.dict(exclude={'password'})
 
 @app.post("/user/new")
 async def new_user_(new_user: NewUser):
@@ -111,6 +111,6 @@ async def new_user_(new_user: NewUser):
     raise HTTPException(status_code=401, detail="Error creating user")
   return {"created_user": username}
 
-async def assertAdmin(user: User):
-  if (await user).priv < auth.PRIV_ADMIN:
+def assertAdmin(user: User):
+  if user.priv < auth.PRIV_ADMIN:
     raise HTTPException(401, "Unauthorized")

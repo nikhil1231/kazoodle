@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { postLogin } from "../api";
+import { saveAccessToken } from "../utils";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +22,10 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
+    const token: AccessToken = await res.json();
+
     setUsername("");
+    saveAccessToken(token);
 
     navigate("/admin");
   };
