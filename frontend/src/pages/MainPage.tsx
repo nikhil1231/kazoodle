@@ -1,11 +1,14 @@
+import "./MainPage.css";
+
 import { Alert, Button } from "react-bootstrap";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
 import Form from "react-bootstrap/Form";
 import { useState, useEffect } from "react";
-import { getCurrentSong } from "../api";
+import { getCurrentSong, getSongLink } from "../api";
 import { GameOverModal } from "../components/main/GameOverModal";
 import fuzzysort from "fuzzysort";
+import { AudioPlayer } from "../components/main/AudioPlayer";
 
 const NUM_GUESSES = 3;
 const GUESS_FUZZINESS_THRESHOLD = -10; // 0 is exact match, lower is worse
@@ -14,10 +17,25 @@ const GUESS_TEST_FILTER_REGEX = /[^\w\s!?]/g;
 export const MainPage: React.FC = () => {
   const [currentGuess, setCurrentGuess] = useState("");
   const [guesses, setGuesses] = useState<string[]>([]);
+  const [songLink, setSongLink] = useState("");
   const [answer, setAnswer] = useState<Song>();
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
+
+  const loadSong = async () => {
+    getSongLink()
+      .then((s) => {
+        setSongLink(s);
+      })
+      .catch((e) =>
+        alert("Error connecting to server, please try again later.")
+      );
+
+    getCurrentSong().then((s) => {
+      setAnswer(s);
+    });
+  };
 
   const isGuessCorrect = (guess: string): boolean => {
     if (answer === undefined) {
@@ -47,13 +65,7 @@ export const MainPage: React.FC = () => {
   };
 
   useEffect(() => {
-    getCurrentSong()
-      .then((s) => {
-        setAnswer(s);
-      })
-      .catch((e) =>
-        alert("Error connecting to server, please try again later.")
-      );
+    loadSong();
   }, []);
 
   return (
@@ -77,6 +89,7 @@ export const MainPage: React.FC = () => {
             .
           </Alert>
         ))}
+        <AudioPlayer src={songLink} />
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Control
             disabled={gameOver}

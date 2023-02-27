@@ -1,7 +1,7 @@
 import { getAccessToken } from "./utils";
 
 export const getSongLink = async (): Promise<string> => {
-  const res = await get("/song/upload");
+  const res = await get("/song/link");
   return res.url;
 };
 
@@ -21,44 +21,44 @@ export const getSongHistory = async (): Promise<Song[]> => {
 };
 
 export const getSongQueue = async (): Promise<Song[]> => {
-  const res = await get("/song/queue");
+  const res = await get("/song/queue", true);
   return res.queue;
 };
 
 export const uploadSong = async (formData: FormData): Promise<void> => {
-  const res = await post("/song/upload", formData);
+  const res = await post("/song/upload", formData, true);
 };
 
 export const getUserResponse = async (): Promise<Response> => {
-  return await _get("/user/me");
+  return await _get("/user/me", true);
 };
 
 export const postLogin = async (formData: FormData): Promise<Response> => {
   return await _post("/user/token", formData);
 };
 
-const get = async (path: string) => {
-  const res = await _get(path);
+const get = async (path: string, auth: boolean = false) => {
+  const res = await _get(path, auth);
   return await res.json();
 };
 
-const post = async (path: string, body?: object) => {
-  const res = await _post(path, body);
+const post = async (path: string, body?: object, auth: boolean = false) => {
+  const res = await _post(path, body, auth);
   return await res.json();
 };
 
-const _get = async (path: string) => {
+const _get = async (path: string, auth: boolean = false) => {
   return await fetch(`${process.env.REACT_APP_BACKEND_URL}${path}`, {
     method: "GET",
-    headers: _get_headers(),
+    headers: auth ? _get_headers() : {},
     credentials: "include",
   });
 };
 
-const _post = async (path: string, body?: object) => {
+const _post = async (path: string, body?: object, auth: boolean = false) => {
   return await fetch(`${process.env.REACT_APP_BACKEND_URL}${path}`, {
     method: "POST",
-    headers: _get_headers(),
+    headers: auth ? _get_headers() : {},
     credentials: "include",
     body: body as BodyInit,
   });

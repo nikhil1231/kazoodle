@@ -1,0 +1,29 @@
+.progress-bar-base {
+  height: 16px;
+  overflow: hidden;
+}
+
+.progress-bar-container {
+  border-radius: 4px;
+  width: 100%;
+  background-color: #e9ecef;
+}
+
+.progress-bar-fill {
+  position: relative;
+  top: -16px;
+  background-color: rgb(25, 135, 84);
+}
+
+.progress-bar-ghost {
+  background-color: #b4b4b4;
+}
+
+.progress-bar-divider {
+  background-color: #000000;
+  float: left;
+  position: relative;
+  top: -32px;
+  width: 2px;
+  height: 16px;
+}
