@@ -5,9 +5,6 @@ import { Button } from "react-bootstrap";
 import { MdPauseCircleOutline, MdPlayCircleOutline } from "react-icons/md";
 import { ProgressBar } from "./ProgressBar";
 
-// The sections for playback that you can skip to. The audio clip is trimmed to the last number.
-const MAX_CLIP_LENGTH = 16;
-const SECTIONS = [0, 1, 2, 4, 7, 11, MAX_CLIP_LENGTH];
 const PROGRESS_BAR_RESOLUTION = 1000;
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = (
@@ -15,22 +12,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = (
 ) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentSection, setCurrentSection] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   let playAnimationRef = useRef(0);
 
   const getProgressBarValue = (a: number) =>
-    Math.round((100 * a * PROGRESS_BAR_RESOLUTION) / MAX_CLIP_LENGTH) /
-    PROGRESS_BAR_RESOLUTION;
+    Math.round(
+      (100 * a * PROGRESS_BAR_RESOLUTION) /
+        props.sections[props.sections.length - 1]
+    ) / PROGRESS_BAR_RESOLUTION;
 
-  const isPastMaxSection = (t: number) => t > SECTIONS[currentSection];
-
-  const incrementSection = () =>
-    setCurrentSection((s) => Math.min(s + 1, SECTIONS.length));
+  const isPastMaxSection = (t: number) =>
+    t > props.sections[props.currentSection];
 
   const getNextSectionInterval = (i: number) =>
-    i < SECTIONS.length - 1 ? SECTIONS[i + 1] - SECTIONS[i] : "";
+    i < props.sections.length - 1
+      ? props.sections[i + 1] - props.sections[i]
+      : "";
 
   const repeat = useCallback(() => {
     const audio = audioRef.current;
@@ -39,14 +37,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = (
     }
 
     if (isPastMaxSection(audio.currentTime)) {
-      console.log(audio.currentTime, currentSection);
+      console.log(audio.currentTime, props.currentSection);
 
       return stopPlayback();
     }
     setProgress(getProgressBarValue(audio.currentTime));
 
     playAnimationRef.current = requestAnimationFrame(repeat);
-  }, [audioRef, currentSection]);
+  }, [audioRef, props.currentSection]);
 
   const startPlayback = () => {
     audioRef.current?.play();
@@ -61,6 +59,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = (
     cancelAnimationFrame(playAnimationRef.current);
   };
 
+  const handleSkip = () => {
+    props.handleSkip();
+  };
+
   useEffect(() => {
     if (isPlaying) {
       startPlayback();
@@ -73,8 +75,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = (
     <div>
       <ProgressBar
         fillPosition={progress}
-        ghostPosition={getProgressBarValue(SECTIONS[currentSection])}
-        sections={SECTIONS}
+        ghostPosition={getProgressBarValue(
+          props.sections[props.currentSection]
+        )}
+        sections={props.sections}
       />
       <Button
         className="audio-player-button audio-player-play-button"
@@ -86,10 +90,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = (
       <Button
         className="audio-player-button"
         variant="secondary"
-        onClick={() => incrementSection()}
-        disabled={currentSection >= SECTIONS.length - 1}
+        onClick={() => handleSkip()}
+        disabled={props.currentSection >= props.sections.length - 1}
       >
-        Skip (+{getNextSectionInterval(currentSection)})
+        Skip (+{getNextSectionInterval(props.currentSection)})
       </Button>
       <audio src={props.src} ref={audioRef} />
     </div>
@@ -98,4 +102,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = (
 
 interface AudioPlayerProps {
   src: string;
+  sections: number[];
+  currentSection: number;
+  handleSkip: () => void;
 }

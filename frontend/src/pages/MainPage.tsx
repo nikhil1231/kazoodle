@@ -10,9 +10,13 @@ import { GameOverModal } from "../components/main/GameOverModal";
 import fuzzysort from "fuzzysort";
 import { AudioPlayer } from "../components/main/AudioPlayer";
 
-const NUM_GUESSES = 3;
+// The sections for playback that you can skip to. The audio clip is trimmed to the last number.
+const MAX_CLIP_LENGTH_SECS = 16;
+const SECTIONS = [0, 1, 2, 4, 7, 11, MAX_CLIP_LENGTH_SECS];
+const NUM_GUESSES = SECTIONS.length - 1;
 const GUESS_FUZZINESS_THRESHOLD = -10; // 0 is exact match, lower is worse
 const GUESS_TEST_FILTER_REGEX = /[^\w\s!?]/g;
+const SKIP_GUESS = "SKIPPED";
 
 export const MainPage: React.FC = () => {
   const [currentGuess, setCurrentGuess] = useState("");
@@ -22,6 +26,7 @@ export const MainPage: React.FC = () => {
   const [gameOver, setGameOver] = useState(false);
   const [gameWon, setGameWon] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [currentSection, setCurrentSection] = useState(1);
 
   const loadSong = async () => {
     getSongLink()
@@ -48,20 +53,39 @@ export const MainPage: React.FC = () => {
     return res ? res.score > GUESS_FUZZINESS_THRESHOLD : false;
   };
 
-  const submitGuess = () => {
+  const submitGuess = (guess: string) => {
     if (gameOver || answer === undefined) {
       return;
     }
-    if (isGuessCorrect(currentGuess)) {
+    if (isGuessCorrect(guess)) {
       setGameWon(true);
       setGameOver(true);
+    } else {
+      incrementSection();
     }
     if (guesses.length === NUM_GUESSES - 1) {
       setGameOver(true);
       setShowGameOverModal(true);
     }
     setCurrentGuess("");
-    setGuesses([...guesses, currentGuess]);
+    setGuesses([...guesses, guess]);
+  };
+
+  const getAlertVariant = (guess: string) => {
+    if (isGuessCorrect(guess)) {
+      return "success";
+    } else if (guess == SKIP_GUESS) {
+      return "info";
+    } else {
+      return "danger";
+    }
+  };
+
+  const incrementSection = () =>
+    setCurrentSection((s) => Math.min(s + 1, SECTIONS.length));
+
+  const handleSkip = () => {
+    submitGuess(SKIP_GUESS);
   };
 
   useEffect(() => {
@@ -77,10 +101,7 @@ export const MainPage: React.FC = () => {
       </Navbar>
       <Container>
         {guesses.map((guess) => (
-          <Alert
-            key={guess}
-            variant={isGuessCorrect(guess) ? "success" : "danger"}
-          >
+          <Alert key={guess} variant={getAlertVariant(guess)}>
             {guess}
           </Alert>
         ))}
@@ -89,7 +110,12 @@ export const MainPage: React.FC = () => {
             .
           </Alert>
         ))}
-        <AudioPlayer src={songLink} />
+        <AudioPlayer
+          src={songLink}
+          sections={SECTIONS}
+          currentSection={currentSection}
+          handleSkip={() => handleSkip()}
+        />
         <Form.Group className="mb-3" controlId="formBasicEmail">
           <Form.Control
             disabled={gameOver}
@@ -98,7 +124,7 @@ export const MainPage: React.FC = () => {
             placeholder="Guess the song..."
           />
         </Form.Group>
-        <Button disabled={gameOver} onClick={() => submitGuess()}>
+        <Button disabled={gameOver} onClick={() => submitGuess(currentGuess)}>
           Submit
         </Button>
       </Container>
