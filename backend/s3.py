@@ -19,13 +19,12 @@ s3_config = Config(
 )
 s3_client = boto3.client('s3', config=s3_config)
 
-async def upload_file(song_name: str, artist: str, file: bytes, extension: str):
+async def upload_file(song_id: str, file: bytes, extension: str):
   filename = str(uuid.uuid4())[:8] + extension
   try:
     response = s3_client.upload_fileobj(file, BUCKET_NAME, filename, ExtraArgs={
       'Metadata': {
-        'song_name': song_name,
-        'artist': artist
+        'song_id': song_id,
       }
     })
   except ClientError as e:

@@ -1,5 +1,6 @@
 interface Song {
   filename: string;
+  id: string;
   name: string;
   artist: string;
 }

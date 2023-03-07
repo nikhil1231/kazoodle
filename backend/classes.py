@@ -5,13 +5,15 @@ from pydantic.tools import parse_obj_as
 def from_json(T, j):
   return parse_obj_as(T, json.loads(j))
 
-class Song(BaseModel):
-  filename: str
+class DBSong(BaseModel):
   name: str
   artist: str
 
-  def __str__(self) -> str:
-    return f"Song({self.filename}, {self.name} - {self.artist})"
+class DBSongID(DBSong):
+  id: str
+
+class Song(DBSongID):
+  filename: str
 
 class User(BaseModel):
   username: str

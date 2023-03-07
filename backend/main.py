@@ -6,7 +6,7 @@ from fastapi import FastAPI, File, Form, UploadFile, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from classes import NewUser, User
 from utils import get_env_var
-from manager import get_current_song, get_song_link, get_songs_history, get_songs_queue, update_song, upload_song
+import manager
 from scheduler import get_next_song_time, start_update_timer
 import auth
 
@@ -28,13 +28,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/song/list")
+async def get_song_list_():
+  return {"songs": manager.get_song_list()}
+
 @app.get("/song/link")
 async def get_song_link_():
-  return {"url": get_song_link()}
+  return {"url": manager.get_song_link()}
 
 @app.get("/song/current")
 async def get_current_song_():
-  return get_current_song()
+  return manager.get_current_song()
 
 @app.get("/song/time_til_next")
 async def get_next_time_():
@@ -42,7 +46,7 @@ async def get_next_time_():
 
 @app.get("/song/history")
 async def get_song_history_():
-  return {'history': get_songs_history()}
+  return {'history': manager.get_songs_history()}
 
 ###################### PROTECTED ######################
 
@@ -63,30 +67,39 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 @app.get("/song/queue")
 async def get_song_queue_(user: User = Depends(get_current_user)):
   assertAdmin(user)
-  return {'queue': get_songs_queue()}
+  return {'queue': manager.get_songs_queue()}
 
 @app.post("/song/upload")
-async def create_upload_file(song_name: str = Form(),
-                             artist: str = Form(),
+async def create_upload_file(song_id: str = Form(),
                              file: UploadFile = File(...),
                              user: User = Depends(get_current_user)):
   assertAdmin(user)
   _, ext = os.path.splitext(file.filename)
-  await upload_song(song_name, artist, BytesIO(await file.read()), ext)
+  await manager.upload_song(song_id, BytesIO(await file.read()), ext)
+  return {"song_id": song_id}
+
+@app.post("/song/upload/new")
+async def create_upload_file_new(song_name: str = Form(),
+                                 artist: str = Form(),
+                                 file: UploadFile = File(...),
+                                 user: User = Depends(get_current_user)):
+  assertAdmin(user)
+  _, ext = os.path.splitext(file.filename)
+  await manager.upload_song_new(song_name, artist, BytesIO(await file.read()), ext)
   return {"song_name": song_name}
 
 @app.post("/song/next")
 async def next_song_(user: User = Depends(get_current_user)):
   assertAdmin(user)
   return {
-    'current_song': update_song()
+    'current_song': manager.update_song()
   }
 
 @app.post("/song/previous")
 async def prev_song_(user: User = Depends(get_current_user)):
   assertAdmin(user)
   return {
-    'current_song': update_song(forward=False)
+    'current_song': manager.update_song(forward=False)
   }
 
 

@@ -1,5 +1,10 @@
 import { getAccessToken } from "./utils";
 
+export const getSongList = async (): Promise<Song[]> => {
+  const res = await get("/song/list");
+  return res.songs;
+};
+
 export const getSongLink = async (): Promise<string> => {
   const res = await get("/song/link");
   return res.url;
@@ -27,6 +32,10 @@ export const getSongQueue = async (): Promise<Song[]> => {
 
 export const uploadSong = async (formData: FormData): Promise<void> => {
   const res = await post("/song/upload", formData, true);
+};
+
+export const uploadSongNew = async (formData: FormData): Promise<void> => {
+  const res = await post("/song/upload/new", formData, true);
 };
 
 export const getUserResponse = async (): Promise<Response> => {

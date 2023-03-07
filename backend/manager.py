@@ -1,8 +1,12 @@
 import data_store as ds
 import s3
-from classes import Song
+import mongo
+from classes import DBSong, Song
 
 SHOULD_PRIVATISE_PAST_SONGS = True
+
+def get_song_list():
+  return mongo.get_songs()
 
 def get_song_link():
   song = ds.get_current_song()
@@ -40,7 +44,14 @@ def get_songs_queue():
 def get_songs_history():
   return ds.get_song_history()
 
-async def upload_song(song_name: str, artist: str, file: bytes, extension: str):
-  filename = await s3.upload_file(song_name, artist, file, extension)
+async def upload_song(song_id: str, file: bytes, extension: str):
+  song = mongo.get_song(song_id)
+  filename = await s3.upload_file(song_id, file, extension)
   if filename:
-    ds.add_song_to_queue(Song(filename=filename, name=song_name, artist=artist))
+    ds.add_song_to_queue(Song(filename=filename, id=song_id, name=song.name, artist=song.artist))
+
+async def upload_song_new(song_name: str, artist: str, file: bytes, extension: str):
+  song_id = mongo.add_song(DBSong(name=song_name, artist=artist))
+  filename = await s3.upload_file(song_id, file, extension)
+  if filename:
+    ds.add_song_to_queue(Song(filename=filename, id=song_id, name=song_name, artist=artist))

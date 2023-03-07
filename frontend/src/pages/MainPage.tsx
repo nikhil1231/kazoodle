@@ -3,24 +3,23 @@ import "./MainPage.css";
 import { Alert, Button } from "react-bootstrap";
 import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
-import Form from "react-bootstrap/Form";
 import { useState, useEffect } from "react";
 import { getCurrentSong, getSongLink } from "../api";
 import { GameOverModal } from "../components/main/GameOverModal";
-import fuzzysort from "fuzzysort";
 import { AudioPlayer } from "../components/main/AudioPlayer";
+import { SongPicker } from "../components/common/SongPicker";
 
 // The sections for playback that you can skip to. The audio clip is trimmed to the last number.
 const MAX_CLIP_LENGTH_SECS = 16;
 const SECTIONS = [0, 1, 2, 4, 7, 11, MAX_CLIP_LENGTH_SECS];
 const NUM_GUESSES = SECTIONS.length - 1;
-const GUESS_FUZZINESS_THRESHOLD = -10; // 0 is exact match, lower is worse
-const GUESS_TEST_FILTER_REGEX = /[^\w\s!?]/g;
 const SKIP_GUESS = "SKIPPED";
 
 export const MainPage: React.FC = () => {
   const [currentGuess, setCurrentGuess] = useState("");
+  const [songSearchValue, setSongSearchValue] = useState("");
   const [guesses, setGuesses] = useState<string[]>([]);
+  const [guessIds, setGuessIds] = useState<string[]>([]);
   const [songLink, setSongLink] = useState("");
   const [answer, setAnswer] = useState<Song>();
   const [gameOver, setGameOver] = useState(false);
@@ -31,7 +30,11 @@ export const MainPage: React.FC = () => {
   const loadSong = async () => {
     getSongLink()
       .then((s) => {
-        setSongLink(s);
+        if (s) {
+          setSongLink(s);
+        } else {
+          setGameOver(true);
+        }
       })
       .catch((e) =>
         alert("Error connecting to server, please try again later.")
@@ -46,14 +49,10 @@ export const MainPage: React.FC = () => {
     if (answer === undefined) {
       return false;
     }
-    const res = fuzzysort.single(
-      guess.replace(GUESS_TEST_FILTER_REGEX, ""),
-      answer.name.replace(GUESS_TEST_FILTER_REGEX, "")
-    );
-    return res ? res.score > GUESS_FUZZINESS_THRESHOLD : false;
+    return guess === answer.id;
   };
 
-  const submitGuess = (guess: string) => {
+  const submitGuess = (guess: string, guessText: string) => {
     if (gameOver || answer === undefined) {
       return;
     }
@@ -68,13 +67,15 @@ export const MainPage: React.FC = () => {
       setShowGameOverModal(true);
     }
     setCurrentGuess("");
-    setGuesses([...guesses, guess]);
+    setSongSearchValue("");
+    setGuesses([...guesses, guessText]);
+    setGuessIds([...guessIds, guess]);
   };
 
   const getAlertVariant = (guess: string) => {
     if (isGuessCorrect(guess)) {
       return "success";
-    } else if (guess == SKIP_GUESS) {
+    } else if (guess === SKIP_GUESS) {
       return "info";
     } else {
       return "danger";
@@ -85,7 +86,7 @@ export const MainPage: React.FC = () => {
     setCurrentSection((s) => Math.min(s + 1, SECTIONS.length));
 
   const handleSkip = () => {
-    submitGuess(SKIP_GUESS);
+    submitGuess(SKIP_GUESS, SKIP_GUESS);
   };
 
   useEffect(() => {
@@ -100,14 +101,15 @@ export const MainPage: React.FC = () => {
         </Container>
       </Navbar>
       <Container>
-        {guesses.map((guess) => (
-          <Alert key={guess} variant={getAlertVariant(guess)}>
+        <br />
+        {guesses.map((guess, i) => (
+          <Alert key={i} variant={getAlertVariant(guessIds[i])}>
             {guess}
           </Alert>
         ))}
         {Array.from({ length: NUM_GUESSES - guesses.length }, (_, i) => (
           <Alert key={i} variant="light">
-            .
+            <span className="invisible">.</span>
           </Alert>
         ))}
         <AudioPlayer
@@ -116,15 +118,17 @@ export const MainPage: React.FC = () => {
           currentSection={currentSection}
           handleSkip={() => handleSkip()}
         />
-        <Form.Group className="mb-3" controlId="formBasicEmail">
-          <Form.Control
-            disabled={gameOver}
-            value={currentGuess}
-            onChange={(e) => setCurrentGuess(e.target.value)}
-            placeholder="Guess the song..."
-          />
-        </Form.Group>
-        <Button disabled={gameOver} onClick={() => submitGuess(currentGuess)}>
+        <SongPicker
+          disabled={gameOver}
+          searchValue={songSearchValue}
+          setSearchValue={setSongSearchValue}
+          setSongId={setCurrentGuess}
+        />
+        <br />
+        <Button
+          disabled={gameOver || currentGuess.length === 0}
+          onClick={() => submitGuess(currentGuess, songSearchValue)}
+        >
           Submit
         </Button>
       </Container>

@@ -1,3 +1,7 @@
 .container {
   max-width: 720px;
 }
+
+.alert-light {
+  --bs-alert-bg: #f0f0f0;
+}
