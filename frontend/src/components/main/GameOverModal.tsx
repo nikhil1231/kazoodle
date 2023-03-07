@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 
 export const GameOverModal: React.FC<GameOverModalProps> = (props: GameOverModalProps) => {
@@ -6,9 +5,9 @@ export const GameOverModal: React.FC<GameOverModalProps> = (props: GameOverModal
   return (
     <Modal show={props.show} onHide={props.handleClose}>
       <Modal.Header closeButton>
-        <Modal.Title>Game over!</Modal.Title>
+        <Modal.Title>{props.gameWon ? "Congratulations!" : "Game over!"}</Modal.Title>
       </Modal.Header>
-      <Modal.Body>Sorry, you didn't guess the song. :(</Modal.Body>
+      <Modal.Body>{props.gameWon ? "Well done, you guessed the song!" : "Sorry, you didn't guess the song. :("}</Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={props.handleClose}>
           Close
@@ -20,5 +19,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = (props: GameOverModal
 
 interface GameOverModalProps {
   show: boolean;
+  gameWon: boolean;
   handleClose: () => void;
 }

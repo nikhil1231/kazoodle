@@ -34,6 +34,9 @@ export const MainPage: React.FC = () => {
           setSongLink(s);
         } else {
           setGameOver(true);
+          alert(
+            "Sorry, there isn't a song available today. Come back tomorrow."
+          );
         }
       })
       .catch((e) =>
@@ -59,6 +62,7 @@ export const MainPage: React.FC = () => {
     if (isGuessCorrect(guess)) {
       setGameWon(true);
       setGameOver(true);
+      setShowGameOverModal(true);
     } else {
       incrementSection();
     }
@@ -134,6 +138,7 @@ export const MainPage: React.FC = () => {
       </Container>
       <GameOverModal
         show={showGameOverModal}
+        gameWon={gameWon}
         handleClose={() => setShowGameOverModal(false)}
       />
     </div>
